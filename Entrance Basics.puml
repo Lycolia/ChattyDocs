@@ -1,0 +1,33 @@
+@startuml ""
+
+title Entrance Basics
+
+actor User
+collections Entrance
+collections RESTAPI
+
+User->Entrance: 入室情報入力
+note over User, Entrance
+    部屋名
+    ユーザー名
+end note
+Entrance->RESTAPI: 入室情報送信
+note over Entrance, RESTAPI
+    部屋名
+    ユーザー名
+end note
+RESTAPI->RESTAPI: エラーチェック
+alt エラーあり
+    RESTAPI->Entrance: 入室拒否(403)
+else エラーなし
+    RESTAPI->Entrance: 入室許可
+note over RESTAPI, Entrance
+    部屋名
+    ユーザー名
+    ユーザーID
+end note
+Entrance->Entrance: ユーザー情報をlocalStrageに保存
+Entrance->Entrance: Roomへ遷移
+end
+
+@enduml

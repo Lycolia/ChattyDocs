@@ -1,0 +1,36 @@
+@startuml ""
+
+title Chatty
+
+actor User
+collections Room
+collections RESTAPI
+
+User->Room: チャット送信
+Room->RESTAPI: チャットメッセージ送信
+note over Room, RESTAPI
+    ユーザーID
+    メッセージ
+end note
+alt ユーザーID不備
+Room->Room: 入室拒否(403)
+else ユーザー情報OK
+    Room->RESTAPI: 入室情報送信
+    note over Room, RESTAPI
+        部屋名
+        ユーザー名
+        ユーザーID
+    end note
+    RESTAPI->RESTAPI: エラーチェック
+    alt エラーあり
+        RESTAPI->Room: 入室拒否(403)
+    else エラーなし
+        RESTAPI->Room: 入室許可(200)
+        Room->Room: 通常入室処理へ繋ぐ
+    end
+end
+
+
+
+
+@enduml

@@ -1,0 +1,202 @@
+openapi: 3.0.3
+info:
+  description: |
+    チャット用のAPI  
+    基本的にログイン制  
+    ルームにいない人が発言できたり、ログを見れたりはできない
+  version: 0.0.1
+  title: Chatty API
+components:
+  schemas:
+    JoinRequest:
+      type: object
+      properties:
+        userName:
+          type: string
+        userId:
+          type: string
+          nullable: true
+    JoinSucceed:
+      type: object
+      properties:
+        roomName:
+          type: string
+        userId:
+          type: string
+    ChatHistoryRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+    ChatSend:
+      type: object
+      properties:
+        message:
+          type: string
+        userId:
+          type: string
+    ChatReceive:
+      type: array
+      items:
+        type: object
+        properties:
+          message:
+            type: string
+          userName:
+            type: string
+          userId:
+            type: string
+          timestamp:
+            type: string
+            format: date-time
+    GeneralError:
+      type: object
+      properties:
+        message:
+          type: string
+paths:
+  /room/join/{roomName}:
+    post:
+      tags:
+      - Join State
+      summary: チャットルームへ入室
+      operationId: joinRoom
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequest'
+            examples:
+              first:
+                summary: 初回入室時
+                value:
+                  userName: testuser
+                  userId: null
+              second:
+                summary: 二回目以降
+                value:
+                  userName: testuser
+                  userId: -Rq53Tx1_DqFK6xtIpOn
+      responses:
+        200:
+          description: 入室成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinSucceed'
+              example:
+                roomName: lobby
+                userId: -Rq53Tx1_DqFK6xtIpOn
+        400:
+          description: 情報不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: 部屋情報かユーザー名が不足しています。
+        403:
+          description: ユーザーIDが不正(DBに存在しないID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: ユーザーIDが不正です
+    delete:
+      tags:
+      - Join State
+      summary: チャットルームから退出
+      operationId: leaveRoom
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequest'
+            example:
+              userName: testuser
+              userId: -Rq53Tx1_DqFK6xtIpOn
+      responses:
+        200:
+          description: 退出成功
+        400:
+          description: 情報不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: 部屋情報かユーザー名が不足しています。
+        403:
+          description: ユーザーIDが不正(DBに存在しないID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: ユーザーIDが不正です
+  /room/message/{roomName}:
+    get:
+      tags:
+      - Chat Message
+      summary: チャットルームの発言履歴を取得
+      operationId: getChat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatHistoryRequest'
+            example:
+              userId: -Rq53Tx1_DqFK6xtIpOn
+      responses:
+        200:
+          description: 発言履歴取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatReceive'
+              example:
+                - message: ほげぴよふが3
+                  userName: User2
+                  userId: -zQxx5vb_CdjU6xtkjWa
+                  timestamp: 2020-12-30 10:11:22
+                - message: ほげぴよふが2
+                  userName: User1
+                  userId: -Yt13xqq65djx6x32jOp
+                  timestamp: 2020-12-30 10:12:23
+                - message: ほげぴよふが1
+                  userName: User2
+                  userId: -zQxx5vb_CdjU6xtkjWa
+                  timestamp: 2020-12-30 10:13:00
+        403:
+          description: ユーザーIDが不正(DBに存在しないID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: ユーザーIDが不正です。
+    post:
+      tags:
+      - Chat Message
+      summary: チャットルームへ発言
+      operationId: postChat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSend'
+            example:
+              message: ほげぴよふが
+              userId: -Rq53Tx1_DqFK6xtIpOn
+      responses:
+        200:
+          description: チャット送信成功
+        403:
+          description: ユーザーIDが不正(DBに存在しないID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+              example:
+                message: ユーザーIDが不正です。
